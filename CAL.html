@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tebak cal</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial;
+    background:
+        linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+        url('background.jpg');
+    background-size:cover;
+    background-position:center;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    color:white;
+    padding:20px;
+    overflow:hidden;
+}
+
+h1{
+    margin-bottom:40px;
+}
+
+.game-board{
+    display:grid;
+
+    /* sebelumnya 4 kolom, sekarang 6 kolom */
+    grid-template-columns:repeat(6,90px);
+
+    gap:15px;
+    margin-top:40px;
+}
+
+.card{
+    width:90px;
+    height:90px;
+    background:#1e90ff;
+    border-radius:15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:2.5em;
+    cursor:pointer;
+}
+
+.card.flipped{
+    background:#00bfff;
+}
+
+.card.matched{
+    background:#00ffcc;
+}
+
+.popup{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.7);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:10;
+}
+
+.popup-content{
+    background:white;
+    color:black;
+    padding:20px;
+    border-radius:15px;
+    text-align:center;
+}
+
+.popup img{
+    width:200px;
+    margin-top:10px;
+    cursor:pointer;
+}
+
+button{
+    margin-top:10px;
+    padding:8px 15px;
+    border:none;
+    background:#1e90ff;
+    color:white;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+.rain{
+    position:fixed;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:5;
+}
+
+.drop{
+    position:absolute;
+    top:-50px;
+    animation:fall linear infinite;
+}
+
+@keyframes fall{
+    to{
+        transform:translateY(110vh);
+    }
+}
+</style>
+</head>
+
+<body>
+
+<h1>💙 APAKAH CALYA BISA MENEBAK?🤪 💙</h1>
+
+<div id="board" class="game-board"></div>
+
+<div id="rain" class="rain"></div>
+
+<div id="popup" class="popup">
+    <div class="popup-content">
+        <h2>Anjayyy bisa🤭</h2>
+        <p>nih scan dulu ☺️👇</p>
+
+        <a href="https://fristyanira.github.io/hbd-calya/" target="_blank">
+            <img src="qrcode.png">
+        </a>
+
+        <br>
+        <button onclick="location.reload()">Tutup</button>
+    </div>
+</div>
+
+<script>
+class Game{
+    constructor(){
+
+        /* sebelumnya 6 emoji, sekarang dibuat 12
+           jadi total kartu = 24 (2x lebih banyak) */
+
+        this.images = [
+            '💙','🔵','🌊','🌀','❄️','🐬',
+            '🐳','🫧','💎','🌌','⭐','🩵'
+        ];
+
+        this.cards = [];
+        this.flipped = [];
+        this.matched = 0;
+
+        this.init();
+    }
+
+    init(){
+        const board = document.getElementById('board');
+        board.innerHTML = "";
+
+        this.cards = [...this.images, ...this.images]
+            .sort(() => Math.random() - 0.5);
+
+        this.cards.forEach(img => {
+            const card = document.createElement('div');
+            card.className = "card";
+            card.dataset.img = img;
+
+            card.onclick = () => this.flip(card);
+
+            board.appendChild(card);
+        });
+    }
+
+    flip(card){
+        if(
+            card.classList.contains('flipped') ||
+            this.flipped.length == 2
+        ) return;
+
+        card.classList.add('flipped');
+        card.textContent = card.dataset.img;
+        this.flipped.push(card);
+
+        if(this.flipped.length == 2){
+            setTimeout(() => this.check(), 700);
+        }
+    }
+
+    check(){
+        let [a,b] = this.flipped;
+
+        if(a.dataset.img === b.dataset.img){
+            a.classList.add('matched');
+            b.classList.add('matched');
+            this.matched++;
+
+            if(this.matched === this.images.length){
+                startRain();
+                document.getElementById('popup').style.display = "flex";
+            }
+        }else{
+            a.classList.remove('flipped');
+            b.classList.remove('flipped');
+            a.textContent = '';
+            b.textContent = '';
+        }
+
+        this.flipped = [];
+    }
+}
+
+function startRain(){
+    const rain = document.getElementById('rain');
+    const emo = ['💙','🔵','🌀','🌊'];
+
+    for(let i = 0; i < 50; i++){
+        const d = document.createElement('span');
+        d.className = 'drop';
+        d.textContent = emo[Math.floor(Math.random() * emo.length)];
+
+        d.style.left = Math.random() * 100 + 'vw';
+        d.style.animationDuration = (2 + Math.random() * 3) + 's';
+        d.style.fontSize = (20 + Math.random() * 20) + 'px';
+
+        rain.appendChild(d);
+    }
+}
+
+new Game();
+</script>
+
+</body>
+</html>
